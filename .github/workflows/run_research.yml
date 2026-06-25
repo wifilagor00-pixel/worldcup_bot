@@ -1,0 +1,78 @@
+# ============================================================================
+# MLCC Super Cycle · Quant Research · GitHub Actions 云端定时调度
+# ============================================================================
+# 调度规则（UTC 时间，GitHub Actions 标准）：
+#   北京时间 周一~周五 08:00 = UTC 00:00  → 美股盘前前哨站
+#   北京时间 周五      20:00 = UTC 12:00  → 全周周期汇总复盘
+#
+# GitHub 允许的实际触发时间可能有 5-15 分钟延迟，属于正常排队现象。
+# ============================================================================
+
+name: MLCC Quant Research Auto-Run
+
+on:
+  # ---- 定时任务 ----
+  schedule:
+    # 盘前前哨站：北京时间 Mon-Fri 08:00 (UTC 00:00)
+    - cron: '0 0 * * 1-5'
+    # 全周复盘：北京时间 Fri 20:00 (UTC 12:00)
+    - cron: '0 12 * * 5'
+
+  # ---- 手动触发（在 GitHub Actions 页面点 "Run workflow"） ----
+  workflow_dispatch:
+
+# ============================================================================
+jobs:
+  research-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ------------------------------------------------------------------
+      # Step 1: Checkout 代码
+      # ------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # Step 2: 安装 Python + 依赖
+      # ------------------------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install yfinance requests beautifulsoup4 lxml apscheduler python-dotenv
+
+      # ------------------------------------------------------------------
+      # Step 3: 运行投研流水线
+      #   --now 参数表示立即执行一次完整扫描（不启动常驻调度器）
+      #   所有敏感密钥从 GitHub Secrets 注入为环境变量
+      # ------------------------------------------------------------------
+      - name: Run MLCC Quant Research Pipeline
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: ${{ secrets.GROQ_MODEL || 'llama-3.3-70b-versatile' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NEWSAPI_KEY: ${{ secrets.NEWSAPI_KEY }}
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          DEBUG: '0'
+        run: python mlcc_quant_research.py --now
+
+      # ------------------------------------------------------------------
+      # Step 4: 上传报告和日志作为 workflow artifact（可选，便于事后查看）
+      # ------------------------------------------------------------------
+      - name: Upload research artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-output-${{ github.run_id }}
+          path: |
+            research_data/
+            logs/
+          retention-days: 30
