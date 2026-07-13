@@ -53,5 +53,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: highlight-videos-${{ github.run_id }}
-          path: worldcup_bot/output/*/highlight-*.mp4
+          path: worldcup_bot/output/**/*.mp4
           retention-days: 3
