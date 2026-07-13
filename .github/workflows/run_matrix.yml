@@ -1,0 +1,57 @@
+name: "World Cup Daily Matrix — 5 Highlights + YouTube Upload"
+
+on:
+  schedule:
+    - cron: "0 0 * * *"                # 00:00 UTC daily (~8 AM Beijing)
+  workflow_dispatch:                     # manual trigger
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('worldcup_bot/requirements.txt') }}
+
+      - name: Install system deps (ffmpeg + deno)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg 2>/dev/null || true
+
+      - name: Setup Deno (for yt-dlp JS runtime)
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Install Python deps
+        run: |
+          pip install --upgrade pip
+          pip install yt-dlp moviepy requests urllib3 google-auth-oauthlib google-api-python-client
+
+      - name: Run Daily Matrix Factory
+        working-directory: worldcup_bot
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: python daily_matrix_factory.py
+
+      - name: Upload artifacts (videos as backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highlight-videos-${{ github.run_id }}
+          path: worldcup_bot/output/*/highlight-*.mp4
+          retention-days: 3
