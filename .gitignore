@@ -28,6 +28,7 @@ logs/
 worldcup_bot/tmp/
 worldcup_bot/output/
 worldcup_bot/bgm.*
+!worldcup_bot/bgm.m4a
 *.mp4
 *.mp3
 

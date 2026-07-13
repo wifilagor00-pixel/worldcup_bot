@@ -121,26 +121,14 @@ def _clean_title(title):
 
 def acquire_music():
     """
-    Download a trending background track via yt-dlp.
-    Tries local bgm.mp3 first, then each music query in order.
+    Use the committed royalty-free bgm.m4a in the repo root.
+    No yt-dlp music search — works on GitHub Actions where YouTube blocks IPs.
     Returns (audio_path, display_title) or (None, None).
     """
-    local = ROOT / "bgm.mp3"
-    if local.exists():
-        return local, "Trending Music"
-
-    for query in MUSIC_QUERIES:
-        results = _yt_search(query, max_results=3, min_dur=90, max_dur=360)
-        if not results:
-            continue
-        for r in results:
-            path = _yt_download(r["id"], TMP / "bgm_audio", audio_only=True)
-            if path:
-                cached = ROOT / ("bgm" + path.suffix)
-                if cached.exists():
-                    cached.unlink()
-                path.rename(cached)
-                return cached, _clean_title(r["title"])
+    for name in ["bgm.m4a", "bgm.mp3", "bgm"]:
+        local = ROOT / name
+        if local.exists():
+            return local, "Trending Sports EDM"
     return None, None
 
 # ═══════════════════════════════════════════════════════════════════════
