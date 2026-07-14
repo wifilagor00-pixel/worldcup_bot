@@ -191,6 +191,7 @@ def build_highlight_montage(yt_videos, music_path, music_title, output_path):
         if p:
             sources.append(p)
     if not sources:
+        print("       ❌ [错误中断]: 所有的 YouTube 足球素材下载全部失败了！IP 可能被封了。")
         return None
 
     # 2. adaptive replay slicing: skip first 30s (logos/intros), motion-filter
@@ -221,6 +222,7 @@ def build_highlight_montage(yt_videos, music_path, music_title, output_path):
         src.close()
 
     if not subclips:
+        print("       ❌ [错误中断]: 没有切出有效的视频片段，可能是素材是空的，或者 TextClip 字体报错。")
         return None
     random.shuffle(subclips)
 
