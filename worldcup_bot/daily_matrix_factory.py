@@ -235,16 +235,7 @@ def build_highlight_montage(yt_videos, music_path, music_title, output_path):
             break
     video = video.subclipped(0, DURATION)
 
-    # 4. minimalist watermark
-    watermark = (TextClip(
-        text=f"Music: {music_title}",
-        font=FONT_PATH, font_size=38,
-        color="white", stroke_color="black", stroke_width=3,
-        duration=DURATION,
-    ).with_position(("center", H - 120)))
-    video = CompositeVideoClip([video, watermark])
-
-    # 5. audio: music track clipped to exactly DURATION
+    # 4. audio: music track clipped to exactly DURATION
     music = AudioFileClip(str(music_path))
     if music.duration < DURATION:
         repeats = int(DURATION / music.duration) + 1
@@ -253,7 +244,7 @@ def build_highlight_montage(yt_videos, music_path, music_title, output_path):
     video = video.with_audio(music)
     video.write_videofile(str(output_path), fps=FPS, logger=None)
 
-    # 6. cleanup temp sources
+    # 5. cleanup temp sources
     for sp in sources:
         try:
             sp.unlink()
