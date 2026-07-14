@@ -190,6 +190,17 @@ def build_highlight_montage(yt_videos, music_path, music_title, output_path):
         p = _yt_download(v["id"], TMP / f"footy_{v['id'][:8]}.mp4")
         if p:
             sources.append(p)
+
+    #   fallback: if all yt-dlp downloads failed, use local MP4 files
+    if not sources:
+        for search_dir in [ROOT, ROOT / "video"]:
+            if search_dir.exists():
+                local_files = sorted(search_dir.glob("*.mp4"))
+                if local_files:
+                    print(f"       ⚠️  YouTube fail — using {len(local_files)} local MP4(s) as fallback")
+                    sources = local_files[:4]
+                    break
+
     if not sources:
         print("       ❌ [错误中断]: 所有的 YouTube 足球素材下载全部失败了！IP 可能被封了。")
         return None
