@@ -30,6 +30,7 @@ worldcup_bot/output/
 worldcup_bot/bgm.*
 !worldcup_bot/bgm.m4a
 *.mp4
+!worldcup_bot/fallback.mp4
 *.mp3
 
 # OS

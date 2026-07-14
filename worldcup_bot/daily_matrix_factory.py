@@ -202,6 +202,7 @@ def build_highlight_montage(yt_videos, music_path, music_title, output_path):
                     break
 
     if not sources:
+        print("       ❌ [致命中断]：既无法下载 YouTube 视频，本地也没有找到任何 *.mp4 素材！")
         print("       ❌ [错误中断]: 所有的 YouTube 足球素材下载全部失败了！IP 可能被封了。")
         return None
 
